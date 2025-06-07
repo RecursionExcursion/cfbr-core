@@ -1,0 +1,21 @@
+{
+  "name": "cfbr-core",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "test": "tsc && node --test dist/tests/ranker.test.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/jest": "^29.5.14",
+    "@types/node": "^22.15.30",
+    "jest": "^29.7.0",
+    "typescript": "^5.8.3"
+  }
+}
