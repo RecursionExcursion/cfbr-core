@@ -1,7 +1,7 @@
 import assert from "node:assert";
-import { describe, it, test } from "node:test";
+import { describe, it } from "node:test";
 import { RankerGame, RankerStat, RankerTeam } from "../lib/ranker-types";
-import { calcStatRankings, compileSeason, sqaushStats } from "../lib/ranker.js";
+import { rank } from "../lib/ranker.js";
 
 function createGame(
   id: number,
@@ -108,9 +108,8 @@ const mockGames: RankerGame[] = [
   ),
 ];
 
-describe("Compile Test", () => {
-  const res = compileSeason(mockTeams, mockGames);
-
+describe("Test rank", () => {
+  const res = rank(mockTeams, mockGames);
   it("Teams are captured", () => {
     const teamKeys = Array.from(res.teamMap.keys());
     const required = [1, 2, 3];
@@ -137,76 +136,70 @@ describe("Compile Test", () => {
       assert.strictEqual(3, res.sznMap.get(i)?.size);
     }
   });
-});
-
-describe("Stat Squashing", () => {
-  const res = compileSeason(mockTeams, mockGames);
-  sqaushStats(res.sznMap);
 
   it("Stats are squashed", () => {
     //tm3 (best team) //wk1
     assert.strictEqual(res.sznMap.get(0)?.get(3)?.Stats.Wins.Val, 1);
     assert.strictEqual(res.sznMap.get(0)?.get(3)?.Stats.Wins.PgVal, 1);
-    
+
     assert.strictEqual(res.sznMap.get(0)?.get(3)?.Stats.Losses.Val, 0);
     assert.strictEqual(res.sznMap.get(0)?.get(3)?.Stats.Losses.PgVal, 0);
-    
+
     assert.strictEqual(res.sznMap.get(0)?.get(3)?.Stats.TotalOffense.Val, 150);
-    assert.strictEqual(res.sznMap.get(0)?.get(3)?.Stats.TotalOffense.PgVal, 150);
-    
+    assert.strictEqual(
+      res.sznMap.get(0)?.get(3)?.Stats.TotalOffense.PgVal,
+      150
+    );
+
     assert.strictEqual(res.sznMap.get(0)?.get(3)?.Stats.PF.Val, 10);
     assert.strictEqual(res.sznMap.get(0)?.get(3)?.Stats.PF.PgVal, 10);
-    
+
     assert.strictEqual(res.sznMap.get(0)?.get(3)?.Stats.PA.Val, 0);
     assert.strictEqual(res.sznMap.get(0)?.get(3)?.Stats.PA.PgVal, 0);
-    
+
     //tm3 (best team) //wk2
     assert.strictEqual(res.sznMap.get(1)?.get(3)?.Stats.Wins.Val, 2);
     assert.strictEqual(res.sznMap.get(1)?.get(3)?.Stats.Wins.PgVal, 1);
-    
+
     assert.strictEqual(res.sznMap.get(1)?.get(3)?.Stats.Losses.Val, 0);
     assert.strictEqual(res.sznMap.get(1)?.get(3)?.Stats.Losses.PgVal, 0);
-    
+
     assert.strictEqual(res.sznMap.get(1)?.get(3)?.Stats.TotalOffense.Val, 300);
-    assert.strictEqual(res.sznMap.get(1)?.get(3)?.Stats.TotalOffense.PgVal, 150);
-    
-    
+    assert.strictEqual(
+      res.sznMap.get(1)?.get(3)?.Stats.TotalOffense.PgVal,
+      150
+    );
+
     assert.strictEqual(res.sznMap.get(1)?.get(3)?.Stats.PF.Val, 20);
     assert.strictEqual(res.sznMap.get(1)?.get(3)?.Stats.PF.PgVal, 10);
-    
+
     assert.strictEqual(res.sznMap.get(1)?.get(3)?.Stats.PA.Val, 7);
-    
+
     //tm3 (best team) //wk3
     assert.strictEqual(res.sznMap.get(2)?.get(3)?.Stats.Wins.Val, 3);
     assert.strictEqual(res.sznMap.get(2)?.get(3)?.Stats.Wins.PgVal, 1);
-    
+
     assert.strictEqual(res.sznMap.get(2)?.get(3)?.Stats.Losses.Val, 0);
     assert.strictEqual(res.sznMap.get(2)?.get(3)?.Stats.Losses.PgVal, 0);
-    
+
     assert.strictEqual(res.sznMap.get(2)?.get(3)?.Stats.TotalOffense.Val, 450);
-    assert.strictEqual(res.sznMap.get(2)?.get(3)?.Stats.TotalOffense.PgVal, 150);
-    
+    assert.strictEqual(
+      res.sznMap.get(2)?.get(3)?.Stats.TotalOffense.PgVal,
+      150
+    );
+
     assert.strictEqual(res.sznMap.get(2)?.get(3)?.Stats.PF.Val, 30);
     assert.strictEqual(res.sznMap.get(2)?.get(3)?.Stats.PF.PgVal, 10);
 
     assert.strictEqual(res.sznMap.get(2)?.get(3)?.Stats.PA.Val, 14);
   });
-});
 
-describe("Stat Rankings", () => {
-  const res = compileSeason(mockTeams, mockGames);
-  sqaushStats(res.sznMap);
-  calcStatRankings(res.sznMap);
-
-  it("", () => {
-    // console.log(res.sznMap);
-
-    Array.from(res.sznMap.entries()).forEach(([i, wk]) => {
-      console.log(`Wk ${i}`);
-
-      Array.from(wk.values()).forEach((t) => {
-        console.log(t);
-      });
-    });
+  it("Ranking Logic", () => {
+    //tm3 Wk1, 1-0
+    assert.strictEqual(res.sznMap.get(0)?.get(3)?.Stats.Wins.Rank, 1);
+    assert.strictEqual(res.sznMap.get(0)?.get(3)?.Stats.Losses.Rank, 1);
+    //tm1 Wk1, 1-0
+    assert.strictEqual(res.sznMap.get(0)?.get(1)?.Stats.Wins.Rank, 1);
+    assert.strictEqual(res.sznMap.get(0)?.get(1)?.Stats.Losses.Rank, 1);
   });
 });

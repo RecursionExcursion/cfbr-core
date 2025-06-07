@@ -1,3 +1,12 @@
+export type Weights = {
+  Wins: number;
+  Lossess: number;
+  Offense: number;
+  Defense: number;
+  PF: number;
+  PA: number;
+};
+
 //Import data types
 export type RankerSeason = {
   teams: Record<number, RankerTeam>;

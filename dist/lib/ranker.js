@@ -2,8 +2,12 @@ import { error } from "console";
 export function rank(teams, games) {
     const res = compileSeason(teams, games);
     sqaushStats(res.sznMap);
+    calcStatRankings(res.sznMap);
+    calcExternalStat(res.sznMap);
+    assignFinalRanks(res.sznMap);
+    return res;
 }
-export function compileSeason(teams, games) {
+function compileSeason(teams, games) {
     const teamMap = new Map();
     teams.forEach((t) => teamMap.set(t.id, t));
     const gameMap = new Map();
@@ -120,12 +124,11 @@ function createNewRankedStat() {
         PgVal: 0,
     };
 }
-export function sqaushStats(sznMap) {
+function sqaushStats(sznMap) {
     let prev = -1;
     Array.from(sznMap.entries())
         .sort((a, b) => a[0] - b[0])
         .forEach(([wk, tmMap]) => {
-        // if (prev != -1) {
         const prevWk = sznMap.get(prev);
         Array.from(tmMap.entries()).forEach(([id, tm]) => {
             const prevWkTm = prevWk?.get(id);
@@ -148,59 +151,94 @@ export function sqaushStats(sznMap) {
             tm.Stats.PF.PgVal = tm.Stats.PF.Val / gmsPlayed;
             tm.Stats.PA.PgVal = tm.Stats.PA.Val / gmsPlayed;
         });
-        // }
         prev = wk;
     });
 }
-export function calcStatRankings(sznMap) {
+function makeStatRanker(wkArr, field, desc) {
+    //Could pass in param that decided betwween total anbd pg
+    const val = "PgVal";
+    return {
+        sortedTms: wkArr.sort((a, b) => {
+            return desc
+                ? b.Stats[field].Val - a.Stats[field][val]
+                : a.Stats[field].Val - b.Stats[field][val];
+        }),
+        accessor: (tm) => tm.Stats[field][val],
+        assigner: (tm, rank) => (tm.Stats[field].Rank = rank),
+    };
+}
+function calcStatRankings(sznMap) {
     Array.from(sznMap.values()).forEach((wkMap) => {
         const wkArr = Array.from(wkMap.values());
         const rankingConfig = [
-            {
-                sortedTms: wkArr.sort((a, b) => b.Stats.Wins.Val - a.Stats.Wins.Val),
-                accessor: (tm) => tm.Stats.Wins.Val,
-                assigner: (tm, rank) => (tm.Stats.Wins.Rank = rank),
-            },
-            {
-                sortedTms: wkArr.sort((a, b) => b.Stats.TotalOffense.Val - a.Stats.TotalOffense.Val),
-                accessor: (tm) => tm.Stats.TotalOffense.Val,
-                assigner: (tm, rank) => (tm.Stats.TotalOffense.Rank = rank),
-            },
-            {
-                sortedTms: wkArr.sort((a, b) => b.Stats.PF.Val - a.Stats.PF.Val),
-                accessor: (tm) => tm.Stats.PF.Val,
-                assigner: (tm, rank) => (tm.Stats.PF.Rank = rank),
-            },
-            //stats below are sorted in ascending order
-            {
-                sortedTms: wkArr.sort((a, b) => a.Stats.Losses.Val - b.Stats.Losses.Val),
-                accessor: (tm) => tm.Stats.Losses.Val,
-                assigner: (tm, rank) => (tm.Stats.Losses.Rank = rank),
-            },
-            {
-                sortedTms: wkArr.sort((a, b) => a.Stats.TotalDefense.Val - b.Stats.TotalDefense.Val),
-                accessor: (tm) => tm.Stats.TotalDefense.Val,
-                assigner: (tm, rank) => (tm.Stats.TotalDefense.Rank = rank),
-            },
-            {
-                sortedTms: wkArr.sort((a, b) => a.Stats.PA.Val - b.Stats.PA.Val),
-                accessor: (tm) => tm.Stats.PA.Val,
-                assigner: (tm, rank) => (tm.Stats.PA.Rank = rank),
-            },
+            makeStatRanker(wkArr, "Wins", true),
+            makeStatRanker(wkArr, "TotalOffense", true),
+            makeStatRanker(wkArr, "PF", true),
+            makeStatRanker(wkArr, "Losses"),
+            makeStatRanker(wkArr, "TotalDefense"),
+            makeStatRanker(wkArr, "PA"),
         ];
         rankingConfig.forEach((rc) => rankStat(rc));
-        //sum weights
-        Array.from(sznMap.values()).forEach((wkMap) => {
-            Array.from(wkMap.values()).forEach((tm) => sumWeights(tm));
-        });
-        //rank teams on weights
-        Array.from(sznMap.values()).forEach((wkMap) => {
-            rankStat({
-                sortedTms: Array.from(wkMap.values()).sort((a, b) => a.Weight - b.Weight),
-                accessor: (tm) => tm.Weight,
-                assigner: (tm, rank) => (tm.Rank = rank),
+    });
+}
+function calcExternalStat(sznMap) {
+    //Only needs to be donw for week 0, but we the whole season instead
+    assignFinalRanks(sznMap);
+    let last = -1;
+    Array.from(sznMap.entries()).forEach(([wk, wkMap], i) => {
+        if (i !== 0) {
+            Array.from(wkMap).forEach(([id, tm]) => {
+                calcPollInertia(tm, sznMap.get(last)?.get(id));
+                calcStrengthOfSchedule(tm, sznMap.get(last));
             });
+        }
+        last = wk;
+        const valAccessor = "PgVal";
+        rankStat({
+            sortedTms: Array.from(wkMap.values()).sort((a, b) => a.ExternalStats.ScheduleStrength[valAccessor] -
+                b.ExternalStats.ScheduleStrength[valAccessor]),
+            accessor: (tm) => tm.ExternalStats.ScheduleStrength[valAccessor],
+            assigner: (tm, rank) => (tm.ExternalStats.ScheduleStrength.Rank = rank),
         });
+    });
+}
+function calcPollInertia(currTm, prevTm) {
+    currTm.ExternalStats.PollIntertia.Rank = prevTm.Rank;
+    currTm.ExternalStats.PollIntertia.Val = prevTm.Rank;
+    //Probably doesnt matter
+    currTm.ExternalStats.PollIntertia.PgVal =
+        prevTm.Rank / (currTm.Schedule.length || 1);
+}
+function calcStrengthOfSchedule(currTm, prevWeek) {
+    let oppWt = 0;
+    currTm.Schedule.forEach((sg) => {
+        const opp = prevWeek.get(sg.OppId);
+        if (opp) {
+            oppWt += opp.Rank;
+        }
+        else {
+            oppWt += prevWeek.size + 1;
+        }
+    });
+    currTm.ExternalStats.ScheduleStrength.Val = oppWt;
+    currTm.ExternalStats.ScheduleStrength.PgVal =
+        oppWt / (currTm.Schedule.length || 1);
+}
+function assignFinalRanks(sznMap) {
+    compileTeamWeights(sznMap);
+    //rank teams on weights
+    Array.from(sznMap.values()).forEach((wkMap) => {
+        rankStat({
+            sortedTms: Array.from(wkMap.values()).sort((a, b) => a.Weight - b.Weight),
+            accessor: (tm) => tm.Weight,
+            assigner: (tm, rank) => (tm.Rank = rank),
+        });
+    });
+}
+function compileTeamWeights(sznMap) {
+    //sum weights
+    Array.from(sznMap.values()).forEach((wkMap) => {
+        Array.from(wkMap.values()).forEach((tm) => sumWeights(tm));
     });
 }
 function rankStat(params) {
