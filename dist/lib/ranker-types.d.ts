@@ -6,6 +6,11 @@ export type Weights = {
     PF: number;
     PA: number;
 };
+export type ComputedSeason = {
+    teamMap: Map<number, RankerTeam>;
+    gameMap: Map<number, RankerGame>;
+    sznMap: Map<number, WeekTeamsMap>;
+};
 export type RankerSeason = {
     teams: Record<number, RankerTeam>;
     games: Record<number, RankerGame>;

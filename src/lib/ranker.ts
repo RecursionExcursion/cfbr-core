@@ -1,5 +1,6 @@
 import { error } from "console";
 import {
+  ComputedSeason,
   RankedStat,
   RankedTeam,
   RankerGame,
@@ -9,7 +10,7 @@ import {
   WeekTeamsMap,
 } from "./ranker-types";
 
-export function rank(teams: RankerTeam[], games: RankerGame[]) {
+export function rank(teams: RankerTeam[], games: RankerGame[]): ComputedSeason {
   const res = compileSeason(teams, games);
   sqaushStats(res.sznMap);
   calcStatRankings(res.sznMap);

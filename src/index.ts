@@ -5,4 +5,5 @@ export {
   WeekTeamsMap,
   RankerStat,
   RankerGameStats,
+  ComputedSeason,
 } from "./lib/ranker-types";

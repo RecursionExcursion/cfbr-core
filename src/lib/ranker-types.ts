@@ -7,6 +7,12 @@ export type Weights = {
   PA: number;
 };
 
+export type ComputedSeason = {
+  teamMap: Map<number, RankerTeam>;
+  gameMap: Map<number, RankerGame>;
+  sznMap: Map<number, WeekTeamsMap>;
+};
+
 //Import data types
 export type RankerSeason = {
   teams: Record<number, RankerTeam>;
