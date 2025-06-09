@@ -124,6 +124,14 @@ function updateWeightedTeam(tm: RankedTeam, gm: RankerGame) {
 }
 
 function createRankableTeam(rt: RankerTeam): RankedTeam {
+  const createNewRankedStat = (): RankedStat => {
+    return {
+      Rank: 0,
+      Val: 0,
+      PgVal: 0,
+    };
+  };
+
   return {
     Id: rt.id,
     Week: -1,
@@ -142,14 +150,6 @@ function createRankableTeam(rt: RankerTeam): RankedTeam {
       PollIntertia: createNewRankedStat(),
       ScheduleStrength: createNewRankedStat(),
     },
-  };
-}
-
-function createNewRankedStat(): RankedStat {
-  return {
-    Rank: 0,
-    Val: 0,
-    PgVal: 0,
   };
 }
 
@@ -189,7 +189,6 @@ function sqaushStats(sznMap: SeasonMap) {
 
 type RankerParams = {
   sortedTms: RankedTeam[];
-  // sortFn: (i: number, j: number) => boolean;
   accessor: (tm: RankedTeam) => number;
   assigner: (tm: RankedTeam, rank: number) => void;
 };
@@ -200,12 +199,12 @@ function makeStatRanker(
   desc?: boolean
 ): RankerParams {
   //Could pass in param that decided betwween total anbd pg
-  const val: keyof RankedStat = "PgVal";
+  const val: keyof RankedStat = "Val";
   return {
     sortedTms: wkArr.sort((a, b) => {
       return desc
-        ? b.Stats[field].Val - a.Stats[field][val]
-        : a.Stats[field].Val - b.Stats[field][val];
+        ? b.Stats[field][val] - a.Stats[field][val]
+        : a.Stats[field][val] - b.Stats[field][val];
     }),
     accessor: (tm: RankedTeam) => tm.Stats[field][val],
     assigner: (tm: RankedTeam, rank: number) => (tm.Stats[field].Rank = rank),

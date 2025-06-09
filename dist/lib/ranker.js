@@ -96,6 +96,13 @@ function updateWeightedTeam(tm, gm) {
     });
 }
 function createRankableTeam(rt) {
+    const createNewRankedStat = () => {
+        return {
+            Rank: 0,
+            Val: 0,
+            PgVal: 0,
+        };
+    };
     return {
         Id: rt.id,
         Week: -1,
@@ -114,13 +121,6 @@ function createRankableTeam(rt) {
             PollIntertia: createNewRankedStat(),
             ScheduleStrength: createNewRankedStat(),
         },
-    };
-}
-function createNewRankedStat() {
-    return {
-        Rank: 0,
-        Val: 0,
-        PgVal: 0,
     };
 }
 function sqaushStats(sznMap) {
@@ -155,12 +155,12 @@ function sqaushStats(sznMap) {
 }
 function makeStatRanker(wkArr, field, desc) {
     //Could pass in param that decided betwween total anbd pg
-    const val = "PgVal";
+    const val = "Val";
     return {
         sortedTms: wkArr.sort((a, b) => {
             return desc
-                ? b.Stats[field].Val - a.Stats[field][val]
-                : a.Stats[field].Val - b.Stats[field][val];
+                ? b.Stats[field][val] - a.Stats[field][val]
+                : a.Stats[field][val] - b.Stats[field][val];
         }),
         accessor: (tm) => tm.Stats[field][val],
         assigner: (tm, rank) => (tm.Stats[field].Rank = rank),
