@@ -1,4 +1,3 @@
-import { error } from "console";
 export function rank(teams, games) {
     const res = compileSeason(teams, games);
     sqaushStats(res.sznMap);
@@ -74,7 +73,7 @@ function updateWeightedTeam(tm, gm) {
         opp = gm.Stats.home;
     }
     else {
-        throw error(`Team ${tmId} not found in game ${gm.Id}`);
+        throw Error(`Team ${tmId} not found in game ${gm.Id}`);
     }
     //points
     tm.Stats.PF.Val = curr.points;

@@ -1,4 +1,3 @@
-import { error } from "console";
 import {
   ComputedSeason,
   RankedStat,
@@ -98,7 +97,7 @@ function updateWeightedTeam(tm: RankedTeam, gm: RankerGame) {
     curr = gm.Stats.away;
     opp = gm.Stats.home;
   } else {
-    throw error(`Team ${tmId} not found in game ${gm.Id}`);
+    throw Error(`Team ${tmId} not found in game ${gm.Id}`);
   }
 
   //points
