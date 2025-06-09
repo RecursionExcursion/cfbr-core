@@ -157,7 +157,7 @@ function makeStatRanker(wkArr, field, desc) {
     //Could pass in param that decided betwween total anbd pg
     const val = "val";
     return {
-        sortedTms: Array.from(wkArr).sort((a, b) => {
+        sortedTms: wkArr.sort((a, b) => {
             return desc
                 ? b.Stats[field][val] - a.Stats[field][val]
                 : a.Stats[field][val] - b.Stats[field][val];
@@ -170,12 +170,12 @@ function calcStatRankings(sznMap) {
     Array.from(sznMap.values()).forEach((wkMap) => {
         const wkArr = Array.from(wkMap.values());
         const rankingConfig = [
-            makeStatRanker(wkArr, "wins", true),
-            makeStatRanker(wkArr, "totalOffense", true),
-            makeStatRanker(wkArr, "pf", true),
-            makeStatRanker(wkArr, "losses"),
-            makeStatRanker(wkArr, "totalDefense"),
-            makeStatRanker(wkArr, "pa"),
+            makeStatRanker([...wkArr], "wins", true),
+            makeStatRanker([...wkArr], "totalOffense", true),
+            makeStatRanker([...wkArr], "pf", true),
+            makeStatRanker([...wkArr], "losses"),
+            makeStatRanker([...wkArr], "totalDefense"),
+            makeStatRanker([...wkArr], "pa"),
         ];
         rankingConfig.forEach((rc) => rankStat(rc));
     });

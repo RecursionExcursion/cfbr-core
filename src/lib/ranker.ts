@@ -206,7 +206,7 @@ function makeStatRanker(
   //Could pass in param that decided betwween total anbd pg
   const val: keyof RankedStat = "val";
   return {
-    sortedTms: Array.from(wkArr).sort((a, b) => {
+    sortedTms: wkArr.sort((a, b) => {
       return desc
         ? b.Stats[field][val] - a.Stats[field][val]
         : a.Stats[field][val] - b.Stats[field][val];
@@ -221,12 +221,12 @@ function calcStatRankings(sznMap: SeasonMap) {
     const wkArr = Array.from(wkMap.values());
 
     const rankingConfig: RankerParams[] = [
-      makeStatRanker(wkArr, "wins", true),
-      makeStatRanker(wkArr, "totalOffense", true),
-      makeStatRanker(wkArr, "pf", true),
-      makeStatRanker(wkArr, "losses"),
-      makeStatRanker(wkArr, "totalDefense"),
-      makeStatRanker(wkArr, "pa"),
+      makeStatRanker([...wkArr], "wins", true),
+      makeStatRanker([...wkArr], "totalOffense", true),
+      makeStatRanker([...wkArr], "pf", true),
+      makeStatRanker([...wkArr], "losses"),
+      makeStatRanker([...wkArr], "totalDefense"),
+      makeStatRanker([...wkArr], "pa"),
     ];
 
     rankingConfig.forEach((rc) => rankStat(rc));
