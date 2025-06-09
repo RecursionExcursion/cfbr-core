@@ -1,6 +1,11 @@
 import assert from "node:assert";
 import { describe, it } from "node:test";
-import { RankerGame, RankerStat, RankerTeam } from "../lib/ranker-types";
+import {
+  RankerGame,
+  RankerStat,
+  RankerTeam,
+  RankerWeights,
+} from "../lib/ranker-types";
 import { rank } from "../lib/ranker.js";
 
 function createGame(
@@ -108,8 +113,31 @@ const mockGames: RankerGame[] = [
   ),
 ];
 
+const wts: RankerWeights = {
+  total: {
+    wins: 1,
+    losses: 1,
+    offense: 1,
+    defense: 1,
+    pf: 1,
+    pa: 1,
+  },
+  pg: {
+    wins: 1,
+    losses: 1,
+    offense: 1,
+    defense: 1,
+    pf: 1,
+    pa: 1,
+  },
+  extra: {
+    pi: 1,
+    ss: 1,
+  },
+};
+
 describe("Test rank", () => {
-  const res = rank(mockTeams, mockGames);
+  const res = rank(mockTeams, mockGames, wts);
   it("Teams are captured", () => {
     const teamKeys = Array.from(res.teamMap.keys());
     const required = [1, 2, 3];
@@ -139,67 +167,67 @@ describe("Test rank", () => {
 
   it("Stats are squashed", () => {
     //tm3 (best team) //wk1
-    assert.strictEqual(res.sznMap.get(0)?.get(3)?.Stats.Wins.Val, 1);
-    assert.strictEqual(res.sznMap.get(0)?.get(3)?.Stats.Wins.PgVal, 1);
+    assert.strictEqual(res.sznMap.get(0)?.get(3)?.Stats.wins.val, 1);
+    assert.strictEqual(res.sznMap.get(0)?.get(3)?.Stats.wins.pgVal, 1);
 
-    assert.strictEqual(res.sznMap.get(0)?.get(3)?.Stats.Losses.Val, 0);
-    assert.strictEqual(res.sznMap.get(0)?.get(3)?.Stats.Losses.PgVal, 0);
+    assert.strictEqual(res.sznMap.get(0)?.get(3)?.Stats.losses.val, 0);
+    assert.strictEqual(res.sznMap.get(0)?.get(3)?.Stats.losses.pgVal, 0);
 
-    assert.strictEqual(res.sznMap.get(0)?.get(3)?.Stats.TotalOffense.Val, 150);
+    assert.strictEqual(res.sznMap.get(0)?.get(3)?.Stats.totalOffense.val, 150);
     assert.strictEqual(
-      res.sznMap.get(0)?.get(3)?.Stats.TotalOffense.PgVal,
+      res.sznMap.get(0)?.get(3)?.Stats.totalOffense.pgVal,
       150
     );
 
-    assert.strictEqual(res.sznMap.get(0)?.get(3)?.Stats.PF.Val, 10);
-    assert.strictEqual(res.sznMap.get(0)?.get(3)?.Stats.PF.PgVal, 10);
+    assert.strictEqual(res.sznMap.get(0)?.get(3)?.Stats.pf.val, 10);
+    assert.strictEqual(res.sznMap.get(0)?.get(3)?.Stats.pf.pgVal, 10);
 
-    assert.strictEqual(res.sznMap.get(0)?.get(3)?.Stats.PA.Val, 0);
-    assert.strictEqual(res.sznMap.get(0)?.get(3)?.Stats.PA.PgVal, 0);
+    assert.strictEqual(res.sznMap.get(0)?.get(3)?.Stats.pa.val, 0);
+    assert.strictEqual(res.sznMap.get(0)?.get(3)?.Stats.pa.pgVal, 0);
 
     //tm3 (best team) //wk2
-    assert.strictEqual(res.sznMap.get(1)?.get(3)?.Stats.Wins.Val, 2);
-    assert.strictEqual(res.sznMap.get(1)?.get(3)?.Stats.Wins.PgVal, 1);
+    assert.strictEqual(res.sznMap.get(1)?.get(3)?.Stats.wins.val, 2);
+    assert.strictEqual(res.sznMap.get(1)?.get(3)?.Stats.wins.pgVal, 1);
 
-    assert.strictEqual(res.sznMap.get(1)?.get(3)?.Stats.Losses.Val, 0);
-    assert.strictEqual(res.sznMap.get(1)?.get(3)?.Stats.Losses.PgVal, 0);
+    assert.strictEqual(res.sznMap.get(1)?.get(3)?.Stats.losses.val, 0);
+    assert.strictEqual(res.sznMap.get(1)?.get(3)?.Stats.losses.pgVal, 0);
 
-    assert.strictEqual(res.sznMap.get(1)?.get(3)?.Stats.TotalOffense.Val, 300);
+    assert.strictEqual(res.sznMap.get(1)?.get(3)?.Stats.totalOffense.val, 300);
     assert.strictEqual(
-      res.sznMap.get(1)?.get(3)?.Stats.TotalOffense.PgVal,
+      res.sznMap.get(1)?.get(3)?.Stats.totalOffense.pgVal,
       150
     );
 
-    assert.strictEqual(res.sznMap.get(1)?.get(3)?.Stats.PF.Val, 20);
-    assert.strictEqual(res.sznMap.get(1)?.get(3)?.Stats.PF.PgVal, 10);
+    assert.strictEqual(res.sznMap.get(1)?.get(3)?.Stats.pf.val, 20);
+    assert.strictEqual(res.sznMap.get(1)?.get(3)?.Stats.pf.pgVal, 10);
 
-    assert.strictEqual(res.sznMap.get(1)?.get(3)?.Stats.PA.Val, 7);
+    assert.strictEqual(res.sznMap.get(1)?.get(3)?.Stats.pa.val, 7);
 
     //tm3 (best team) //wk3
-    assert.strictEqual(res.sznMap.get(2)?.get(3)?.Stats.Wins.Val, 3);
-    assert.strictEqual(res.sznMap.get(2)?.get(3)?.Stats.Wins.PgVal, 1);
+    assert.strictEqual(res.sznMap.get(2)?.get(3)?.Stats.wins.val, 3);
+    assert.strictEqual(res.sznMap.get(2)?.get(3)?.Stats.wins.pgVal, 1);
 
-    assert.strictEqual(res.sznMap.get(2)?.get(3)?.Stats.Losses.Val, 0);
-    assert.strictEqual(res.sznMap.get(2)?.get(3)?.Stats.Losses.PgVal, 0);
+    assert.strictEqual(res.sznMap.get(2)?.get(3)?.Stats.losses.val, 0);
+    assert.strictEqual(res.sznMap.get(2)?.get(3)?.Stats.losses.pgVal, 0);
 
-    assert.strictEqual(res.sznMap.get(2)?.get(3)?.Stats.TotalOffense.Val, 450);
+    assert.strictEqual(res.sznMap.get(2)?.get(3)?.Stats.totalOffense.val, 450);
     assert.strictEqual(
-      res.sznMap.get(2)?.get(3)?.Stats.TotalOffense.PgVal,
+      res.sznMap.get(2)?.get(3)?.Stats.totalOffense.pgVal,
       150
     );
 
-    assert.strictEqual(res.sznMap.get(2)?.get(3)?.Stats.PF.Val, 30);
-    assert.strictEqual(res.sznMap.get(2)?.get(3)?.Stats.PF.PgVal, 10);
+    assert.strictEqual(res.sznMap.get(2)?.get(3)?.Stats.pf.val, 30);
+    assert.strictEqual(res.sznMap.get(2)?.get(3)?.Stats.pf.pgVal, 10);
 
-    assert.strictEqual(res.sznMap.get(2)?.get(3)?.Stats.PA.Val, 14);
+    assert.strictEqual(res.sznMap.get(2)?.get(3)?.Stats.pa.val, 14);
   });
 
   it("Ranking Logic", () => {
     //tm3 Wk1, 1-0
-    assert.strictEqual(res.sznMap.get(0)?.get(3)?.Stats.Wins.Rank, 1);
-    assert.strictEqual(res.sznMap.get(0)?.get(3)?.Stats.Losses.Rank, 1);
+    assert.strictEqual(res.sznMap.get(0)?.get(3)?.Stats.wins.Rank, 1);
+    assert.strictEqual(res.sznMap.get(0)?.get(3)?.Stats.losses.Rank, 1);
     //tm1 Wk1, 1-0
-    assert.strictEqual(res.sznMap.get(0)?.get(1)?.Stats.Wins.Rank, 1);
-    assert.strictEqual(res.sznMap.get(0)?.get(1)?.Stats.Losses.Rank, 1);
+    assert.strictEqual(res.sznMap.get(0)?.get(1)?.Stats.wins.Rank, 1);
+    assert.strictEqual(res.sznMap.get(0)?.get(1)?.Stats.losses.Rank, 1);
   });
 });

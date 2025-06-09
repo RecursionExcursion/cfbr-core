@@ -1,10 +1,24 @@
-export type Weights = {
-  Wins: number;
-  Lossess: number;
-  Offense: number;
-  Defense: number;
-  PF: number;
-  PA: number;
+export type RankerWeights = {
+  total: {
+    wins: number;
+    losses: number;
+    offense: number;
+    defense: number;
+    pf: number;
+    pa: number;
+  };
+  pg: {
+    wins: number;
+    losses: number;
+    offense: number;
+    defense: number;
+    pf: number;
+    pa: number;
+  };
+  extra: {
+    pi: number;
+    ss: number;
+  };
 };
 
 export type ComputedSeason = {
@@ -55,12 +69,12 @@ export type RankedTeam = {
     OppId: number;
   }>;
   Stats: {
-    Wins: RankedStat;
-    Losses: RankedStat;
-    TotalOffense: RankedStat;
-    TotalDefense: RankedStat;
-    PF: RankedStat;
-    PA: RankedStat;
+    wins: RankedStat;
+    losses: RankedStat;
+    totalOffense: RankedStat;
+    totalDefense: RankedStat;
+    pf: RankedStat;
+    pa: RankedStat;
   };
   ExternalStats: {
     PollIntertia: RankedStat;
@@ -69,8 +83,8 @@ export type RankedTeam = {
 };
 export type RankedStat = {
   Rank: number;
-  Val: number;
-  PgVal: number;
+  val: number;
+  pgVal: number;
 };
 
 //misc

@@ -7,4 +7,5 @@ export {
   RankerGameStats,
   ComputedSeason,
   RankedTeam,
+  RankerWeights
 } from "./lib/ranker-types";
