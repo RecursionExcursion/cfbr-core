@@ -1,9 +1,10 @@
 export { rank } from "./lib/ranker";
 export {
-  ComputedSeason,
   RankerTeam,
   RankerGame,
   WeekTeamsMap,
   RankerStat,
   RankerGameStats,
+  ComputedSeason,
+  RankedTeam,
 } from "./lib/ranker-types";
