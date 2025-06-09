@@ -157,7 +157,7 @@ function makeStatRanker(wkArr, field, desc) {
     //Could pass in param that decided betwween total anbd pg
     const val = "Val";
     return {
-        sortedTms: wkArr.sort((a, b) => {
+        sortedTms: Array.from(wkArr).sort((a, b) => {
             return desc
                 ? b.Stats[field][val] - a.Stats[field][val]
                 : a.Stats[field][val] - b.Stats[field][val];
