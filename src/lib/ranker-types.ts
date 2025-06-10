@@ -58,7 +58,7 @@ export type RankedTeam = {
   schedule: Array<{
     id: number;
     week: number;
-    pppId: number;
+    oppId: number;
   }>;
   stats: {
     wins: Stat;
