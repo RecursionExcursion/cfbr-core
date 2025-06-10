@@ -17,10 +17,10 @@ function createGame(
   type: number
 ): RankerGame {
   return {
-    Id: id,
-    Week: wk,
-    Type: type,
-    Stats: {
+    id: id,
+    week: wk,
+    type: type,
+    stats: {
       home,
       away,
     },
@@ -180,19 +180,19 @@ describe("Test rank", () => {
     const assertStat = (
       wk: number,
       teamId: number,
-      field: keyof RankedTeam["Stats"],
+      field: keyof RankedTeam["stats"],
       expectedTotal?: number,
       expectedPg?: number
     ) => {
       if (expectedTotal) {
         assert.strictEqual(
-          res.sznMap.get(wk)?.get(teamId)?.Stats[field].total.val,
+          res.sznMap.get(wk)?.get(teamId)?.stats[field].total.val,
           expectedTotal
         );
       }
       if (expectedPg) {
         assert.strictEqual(
-          res.sznMap.get(wk)?.get(teamId)?.Stats[field].pg.val,
+          res.sznMap.get(wk)?.get(teamId)?.stats[field].pg.val,
           expectedPg
         );
       }
@@ -201,21 +201,21 @@ describe("Test rank", () => {
     //tm3 (best team) //wk1
     assertStat(0, 3, "wins", 1, 1);
     assertStat(0, 3, "losses", 0, 0);
-    assertStat(0, 3, "totalOffense", 150, 150);
+    assertStat(0, 3, "offense", 150, 150);
     assertStat(0, 3, "pf", 10, 10);
     assertStat(0, 3, "pa", 0, 0);
 
     //tm3 (best team) //wk2
     assertStat(1, 3, "wins", 2, 1);
     assertStat(1, 3, "losses", 0, 0);
-    assertStat(1, 3, "totalOffense", 300, 150);
+    assertStat(1, 3, "offense", 300, 150);
     assertStat(1, 3, "pf", 20, 10);
     // assertStat(1, 3, "pa", 20, 7);
 
     //tm3 (best team) //wk3
     assertStat(2, 3, "wins", 3, 1);
     assertStat(2, 3, "losses", 0, 0);
-    assertStat(2, 3, "totalOffense", 450, 150);
+    assertStat(2, 3, "offense", 450, 150);
     assertStat(2, 3, "pf", 30, 10);
   });
 

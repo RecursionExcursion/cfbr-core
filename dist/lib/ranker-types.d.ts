@@ -25,10 +25,10 @@ export type RankerTeam = {
     id: number;
 };
 export type RankerGame = {
-    Id: number;
-    Week: number;
-    Stats: RankerGameStats;
-    Type: number;
+    id: number;
+    week: number;
+    stats: RankerGameStats;
+    type: number;
 };
 export type RankerGameStats = {
     home: RankerStat;
@@ -42,26 +42,26 @@ export type RankerStat = {
 export type SeasonMap = Map<number, WeekTeamsMap>;
 export type WeekTeamsMap = Map<number, RankedTeam>;
 export type RankedTeam = {
-    Id: number;
-    Week: number;
-    Rank: number;
-    Weight: number;
-    Schedule: Array<{
-        Id: number;
-        Week: number;
-        OppId: number;
+    id: number;
+    week: number;
+    rank: number;
+    weight: number;
+    schedule: Array<{
+        id: number;
+        week: number;
+        pppId: number;
     }>;
-    Stats: {
+    stats: {
         wins: Stat;
         losses: Stat;
-        totalOffense: Stat;
-        totalDefense: Stat;
+        offense: Stat;
+        defense: Stat;
         pf: Stat;
         pa: Stat;
     };
-    ExternalStats: {
-        PollIntertia: Stat;
-        ScheduleStrength: Stat;
+    externalStats: {
+        pollIntertia: Stat;
+        scheduleStrength: Stat;
     };
 };
 export type RankedStat = {
