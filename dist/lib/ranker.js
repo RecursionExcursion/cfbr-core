@@ -92,7 +92,7 @@ function updateWeightedTeam(tm, gm) {
     //add game to schedule
     tm.schedule.push({
         id: gm.id,
-        pppId: opp.id,
+        oppId: opp.id,
         week: gm.week,
     });
 }
@@ -222,7 +222,7 @@ function calcPollInertia(currTm, prevTm) {
 function calcStrengthOfSchedule(currTm, prevWeek) {
     let totalOppWt = 0;
     currTm.schedule.forEach((sg) => {
-        const opp = prevWeek.get(sg.pppId);
+        const opp = prevWeek.get(sg.oppId);
         if (opp) {
             totalOppWt += opp.rank;
         }
