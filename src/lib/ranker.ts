@@ -7,6 +7,7 @@ import {
   RankerTeam,
   RankerWeights,
   SeasonMap,
+  Stat,
   WeekTeamsMap,
 } from "./ranker-types";
 
@@ -17,6 +18,7 @@ export function rank(
 ): ComputedSeason {
   const res = compileSeason(teams, games);
   sqaushStats(res.sznMap);
+  /* at this point all the season stats are accumulated */
   calcStatRankings(res.sznMap);
   calcExternalStat(res.sznMap, weights);
   assignFinalRanks(res.sznMap, weights);
@@ -106,18 +108,18 @@ function updateWeightedTeam(tm: RankedTeam, gm: RankerGame) {
   }
 
   //points
-  tm.Stats.pf.val = curr.points;
-  tm.Stats.pa.val = opp.points;
+  tm.Stats.pf.total.val = curr.points;
+  tm.Stats.pa.total.val = opp.points;
 
   //yards
-  tm.Stats.totalOffense.val = curr.totalYards;
-  tm.Stats.totalDefense.val = opp.totalYards;
+  tm.Stats.totalOffense.total.val = curr.totalYards;
+  tm.Stats.totalDefense.total.val = opp.totalYards;
 
   //W/L
   if (curr.points > opp.points) {
-    tm.Stats.wins.val = 1;
+    tm.Stats.wins.total.val = 1;
   } else {
-    tm.Stats.losses.val = 1;
+    tm.Stats.losses.total.val = 1;
   }
 
   //add game to schedule
@@ -129,11 +131,16 @@ function updateWeightedTeam(tm: RankedTeam, gm: RankerGame) {
 }
 
 function createRankableTeam(rt: RankerTeam): RankedTeam {
-  const createNewRankedStat = (): RankedStat => {
+  const createStat = (): Stat => {
     return {
-      Rank: 0,
-      val: 0,
-      pgVal: 0,
+      total: {
+        rank: 0,
+        val: 0,
+      },
+      pg: {
+        rank: 0,
+        val: 0,
+      },
     };
   };
 
@@ -144,16 +151,16 @@ function createRankableTeam(rt: RankerTeam): RankedTeam {
     Weight: 0,
     Schedule: [],
     Stats: {
-      wins: createNewRankedStat(),
-      losses: createNewRankedStat(),
-      totalOffense: createNewRankedStat(),
-      totalDefense: createNewRankedStat(),
-      pf: createNewRankedStat(),
-      pa: createNewRankedStat(),
+      wins: createStat(),
+      losses: createStat(),
+      totalOffense: createStat(),
+      totalDefense: createStat(),
+      pf: createStat(),
+      pa: createStat(),
     },
     ExternalStats: {
-      PollIntertia: createNewRankedStat(),
-      ScheduleStrength: createNewRankedStat(),
+      PollIntertia: createStat(),
+      ScheduleStrength: createStat(),
     },
   };
 }
@@ -172,21 +179,25 @@ function sqaushStats(sznMap: SeasonMap) {
         if (prevWkTm) {
           tm.Schedule = [...tm.Schedule, ...prevWkTm.Schedule];
 
-          tm.Stats.wins.val += prevWkTm.Stats.wins.val;
-          tm.Stats.losses.val += prevWkTm.Stats.losses.val;
-          tm.Stats.totalOffense.val += prevWkTm.Stats.totalOffense.val;
-          tm.Stats.totalDefense.val += prevWkTm.Stats.totalDefense.val;
-          tm.Stats.pf.val += prevWkTm.Stats.pf.val;
-          tm.Stats.pa.val += prevWkTm.Stats.pa.val;
+          tm.Stats.wins.total.val += prevWkTm.Stats.wins.total.val;
+          tm.Stats.losses.total.val += prevWkTm.Stats.losses.total.val;
+          tm.Stats.totalOffense.total.val +=
+            prevWkTm.Stats.totalOffense.total.val;
+          tm.Stats.totalDefense.total.val +=
+            prevWkTm.Stats.totalDefense.total.val;
+          tm.Stats.pf.total.val += prevWkTm.Stats.pf.total.val;
+          tm.Stats.pa.total.val += prevWkTm.Stats.pa.total.val;
         }
         //Assign per game stats
         const gmsPlayed = tm.Schedule.length || 1; //fallback if 0 games have been played
-        tm.Stats.wins.pgVal = tm.Stats.wins.val / gmsPlayed;
-        tm.Stats.losses.pgVal = tm.Stats.losses.val / gmsPlayed;
-        tm.Stats.totalOffense.pgVal = tm.Stats.totalOffense.val / gmsPlayed;
-        tm.Stats.totalDefense.pgVal = tm.Stats.totalDefense.val / gmsPlayed;
-        tm.Stats.pf.pgVal = tm.Stats.pf.val / gmsPlayed;
-        tm.Stats.pa.pgVal = tm.Stats.pa.val / gmsPlayed;
+        tm.Stats.wins.pg.val = tm.Stats.wins.total.val / gmsPlayed;
+        tm.Stats.losses.pg.val = tm.Stats.losses.total.val / gmsPlayed;
+        tm.Stats.totalOffense.pg.val =
+          tm.Stats.totalOffense.total.val / gmsPlayed;
+        tm.Stats.totalDefense.pg.val =
+          tm.Stats.totalDefense.total.val / gmsPlayed;
+        tm.Stats.pf.pg.val = tm.Stats.pf.total.val / gmsPlayed;
+        tm.Stats.pa.pg.val = tm.Stats.pa.total.val / gmsPlayed;
       });
       prev = wk;
     });
@@ -201,18 +212,19 @@ type RankerParams = {
 function makeStatRanker(
   wkArr: RankedTeam[],
   field: keyof RankedTeam["Stats"],
+  type: keyof Stat,
   desc?: boolean
 ): RankerParams {
   //Could pass in param that decided betwween total anbd pg
-  const val: keyof RankedStat = "val";
   return {
     sortedTms: wkArr.sort((a, b) => {
       return desc
-        ? b.Stats[field][val] - a.Stats[field][val]
-        : a.Stats[field][val] - b.Stats[field][val];
+        ? b.Stats[field][type].val - a.Stats[field][type].val
+        : a.Stats[field][type].val - b.Stats[field][type].val;
     }),
-    accessor: (tm: RankedTeam) => tm.Stats[field][val],
-    assigner: (tm: RankedTeam, rank: number) => (tm.Stats[field].Rank = rank),
+    accessor: (tm: RankedTeam) => tm.Stats[field][type].val,
+    assigner: (tm: RankedTeam, rank: number) =>
+      (tm.Stats[field][type].rank = rank),
   };
 }
 
@@ -220,13 +232,15 @@ function calcStatRankings(sznMap: SeasonMap) {
   Array.from(sznMap.values()).forEach((wkMap) => {
     const wkArr = Array.from(wkMap.values());
 
+    //TODO include pg rankings, could be as simple as doing both in the make stat ranker
     const rankingConfig: RankerParams[] = [
-      makeStatRanker([...wkArr], "wins", true),
-      makeStatRanker([...wkArr], "totalOffense", true),
-      makeStatRanker([...wkArr], "pf", true),
-      makeStatRanker([...wkArr], "losses"),
-      makeStatRanker([...wkArr], "totalDefense"),
-      makeStatRanker([...wkArr], "pa"),
+      makeStatRanker([...wkArr], "wins", "total", true),
+      makeStatRanker([...wkArr], "totalOffense", "total", true),
+      makeStatRanker([...wkArr], "pf", "total", true),
+
+      makeStatRanker([...wkArr], "losses", "total"),
+      makeStatRanker([...wkArr], "totalDefense", "total"),
+      makeStatRanker([...wkArr], "pa", "total"),
     ];
 
     rankingConfig.forEach((rc) => rankStat(rc));
@@ -247,44 +261,43 @@ function calcExternalStat(sznMap: SeasonMap, weights: RankerWeights) {
     }
     last = wk;
 
-    const valAccessor: keyof RankedStat = "pgVal";
-
+    // const valAccessor: keyof RankedStat = "pgVal";
+    //Currently rated pg
     rankStat({
       sortedTms: Array.from(wkMap.values()).sort(
         (a, b) =>
-          a.ExternalStats.ScheduleStrength[valAccessor] -
-          b.ExternalStats.ScheduleStrength[valAccessor]
+          a.ExternalStats.ScheduleStrength.pg.val -
+          b.ExternalStats.ScheduleStrength.pg.val
       ),
-      accessor: (tm: RankedTeam) =>
-        tm.ExternalStats.ScheduleStrength[valAccessor],
+      accessor: (tm: RankedTeam) => tm.ExternalStats.ScheduleStrength.pg.val,
       assigner: (tm: RankedTeam, rank: number) =>
-        (tm.ExternalStats.ScheduleStrength.Rank = rank),
+        (tm.ExternalStats.ScheduleStrength.pg.rank = rank),
     });
   });
 }
 
 function calcPollInertia(currTm: RankedTeam, prevTm: RankedTeam) {
-  currTm.ExternalStats.PollIntertia.Rank = prevTm.Rank;
-  currTm.ExternalStats.PollIntertia.val = prevTm.Rank;
+  currTm.ExternalStats.PollIntertia.total.rank = prevTm.Rank;
+  currTm.ExternalStats.PollIntertia.total.val = prevTm.Rank;
   //Probably doesnt matter
-  currTm.ExternalStats.PollIntertia.pgVal =
+  currTm.ExternalStats.PollIntertia.pg.val =
     prevTm.Rank / (currTm.Schedule.length || 1);
 }
 
 function calcStrengthOfSchedule(currTm: RankedTeam, prevWeek: WeekTeamsMap) {
-  let oppWt = 0;
+  let totalOppWt = 0;
   currTm.Schedule.forEach((sg) => {
     const opp = prevWeek.get(sg.OppId);
     if (opp) {
-      oppWt += opp.Rank;
+      totalOppWt += opp.Rank;
     } else {
-      oppWt += prevWeek.size + 1;
+      totalOppWt += prevWeek.size + 1;
     }
   });
 
-  currTm.ExternalStats.ScheduleStrength.val = oppWt;
-  currTm.ExternalStats.ScheduleStrength.pgVal =
-    oppWt / (currTm.Schedule.length || 1);
+  currTm.ExternalStats.ScheduleStrength.total.val = totalOppWt;
+  currTm.ExternalStats.ScheduleStrength.pg.val =
+    totalOppWt / (currTm.Schedule.length || 1);
 }
 
 function assignFinalRanks(sznMap: SeasonMap, weights: RankerWeights) {
@@ -328,34 +341,34 @@ function rankStat(params: RankerParams) {
 function sumWeights(tm: RankedTeam, weights: RankerWeights) {
   let wt = 0;
   //wins
-  wt += tm.Stats.wins.val * weights.total.wins;
-  wt += tm.Stats.wins.pgVal * weights.pg.wins;
+  wt += tm.Stats.wins.total.rank * weights.stats.wins.totalWeight;
+  // wt += tm.Stats.wins.pgVal * weights.pg.wins;
 
   //losses
-  wt += tm.Stats.losses.val * weights.total.losses;
-  wt += tm.Stats.losses.pgVal * weights.pg.losses;
+  wt += tm.Stats.losses.total.rank * weights.stats.losses.totalWeight;
+  // wt += tm.Stats.losses.pgVal * weights.pg.losses;
 
   //offense
-  wt += tm.Stats.totalOffense.val * weights.total.offense;
-  wt += tm.Stats.totalOffense.pgVal * weights.pg.offense;
+  wt += tm.Stats.totalOffense.total.rank * weights.stats.offense.totalWeight;
+  // wt += tm.Stats.totalOffense.pgVal * weights.pg.offense;
 
   //defense
-  wt += tm.Stats.totalDefense.val * weights.total.defense;
-  wt += tm.Stats.totalDefense.pgVal * weights.pg.defense;
+  wt += tm.Stats.totalDefense.total.rank * weights.stats.defense.totalWeight;
+  // wt += tm.Stats.totalDefense.pgVal * weights.pg.defense;
 
   //pf
-  wt += tm.Stats.pf.val * weights.total.pf;
-  wt += tm.Stats.pf.pgVal * weights.pg.pf;
+  wt += tm.Stats.pf.total.rank * weights.stats.pf.totalWeight;
+  // wt += tm.Stats.pf.pgVal * weights.pg.pf;
 
   //pa
-  wt += tm.Stats.pa.val * weights.total.pa;
-  wt += tm.Stats.pa.pgVal * weights.pg.pa;
+  wt += tm.Stats.pa.total.rank * weights.stats.pa.totalWeight;
+  // wt += tm.Stats.pa.pgVal * weights.pg.pa;
 
   //pi
-  wt += tm.ExternalStats.PollIntertia.val * weights.extra.pi;
+  wt += tm.ExternalStats.PollIntertia.total.rank * weights.extra.pi;
 
   //ss
-  wt += tm.ExternalStats.ScheduleStrength.pgVal * weights.extra.ss;
+  wt += tm.ExternalStats.ScheduleStrength.pg.val * weights.extra.ss;
 
   // Object.entries(tm.Stats).forEach((stat) => (wt += stat[1].Rank));
   tm.Weight = wt;
