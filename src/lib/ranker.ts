@@ -235,6 +235,7 @@ function calcStatRankings(sznMap: SeasonMap) {
     const rankingConfig: RankerParams[] = [
       makeStatRanker([...wkArr], "wins", "total", true),
       makeStatRanker([...wkArr], "offense", "total", true),
+      // makeStatRanker([...wkArr], "offense", "pg", true),
       makeStatRanker([...wkArr], "pf", "total", true),
 
       makeStatRanker([...wkArr], "losses", "total"),
@@ -341,16 +342,17 @@ function sumWeights(tm: RankedTeam, weights: RankerWeights) {
   let wt = 0;
   //wins
   wt += tm.stats.wins.total.rank * weights.stats.wins.totalWeight;
-  // wt += tm.Stats.wins.pgVal * weights.pg.wins;
-
+  wt += tm.stats.wins.pg.rank * weights.stats.wins.pgWeight;
+  
   //losses
   wt += tm.stats.losses.total.rank * weights.stats.losses.totalWeight;
   // wt += tm.Stats.losses.pgVal * weights.pg.losses;
-
+  
   //offense
   wt += tm.stats.offense.total.rank * weights.stats.offense.totalWeight;
   // wt += tm.Stats.totalOffense.pgVal * weights.pg.offense;
-
+  wt += tm.stats.offense.pg.rank * weights.stats.offense.pgWeight;
+  
   //defense
   wt += tm.stats.defense.total.rank * weights.stats.defense.totalWeight;
   // wt += tm.Stats.totalDefense.pgVal * weights.pg.defense;
