@@ -1,3 +1,4 @@
+import { on } from "node:events";
 import {
   ComputedSeason,
   RankedTeam,
@@ -180,10 +181,8 @@ function sqaushStats(sznMap: SeasonMap) {
 
           tm.stats.wins.total.val += prevWkTm.stats.wins.total.val;
           tm.stats.losses.total.val += prevWkTm.stats.losses.total.val;
-          tm.stats.offense.total.val +=
-            prevWkTm.stats.offense.total.val;
-          tm.stats.defense.total.val +=
-            prevWkTm.stats.defense.total.val;
+          tm.stats.offense.total.val += prevWkTm.stats.offense.total.val;
+          tm.stats.defense.total.val += prevWkTm.stats.defense.total.val;
           tm.stats.pf.total.val += prevWkTm.stats.pf.total.val;
           tm.stats.pa.total.val += prevWkTm.stats.pa.total.val;
         }
@@ -191,10 +190,8 @@ function sqaushStats(sznMap: SeasonMap) {
         const gmsPlayed = tm.schedule.length || 1; //fallback if 0 games have been played
         tm.stats.wins.pg.val = tm.stats.wins.total.val / gmsPlayed;
         tm.stats.losses.pg.val = tm.stats.losses.total.val / gmsPlayed;
-        tm.stats.offense.pg.val =
-          tm.stats.offense.total.val / gmsPlayed;
-        tm.stats.defense.pg.val =
-          tm.stats.defense.total.val / gmsPlayed;
+        tm.stats.offense.pg.val = tm.stats.offense.total.val / gmsPlayed;
+        tm.stats.defense.pg.val = tm.stats.defense.total.val / gmsPlayed;
         tm.stats.pf.pg.val = tm.stats.pf.total.val / gmsPlayed;
         tm.stats.pa.pg.val = tm.stats.pa.total.val / gmsPlayed;
       });
@@ -221,9 +218,12 @@ function makeStatRanker(
         ? b.stats[field][type].val - a.stats[field][type].val
         : a.stats[field][type].val - b.stats[field][type].val;
     }),
-    accessor: (tm: RankedTeam) => tm.stats[field][type].val,
-    assigner: (tm: RankedTeam, rank: number) =>
-      (tm.stats[field][type].rank = rank),
+    accessor: (tm: RankedTeam) => {
+      return tm.stats[field][type].val;
+    },
+    assigner: (tm: RankedTeam, rank: number) => {
+      tm.stats[field][type].rank = rank;
+    },
   };
 }
 
@@ -235,12 +235,19 @@ function calcStatRankings(sznMap: SeasonMap) {
     const rankingConfig: RankerParams[] = [
       makeStatRanker([...wkArr], "wins", "total", true),
       makeStatRanker([...wkArr], "offense", "total", true),
-      // makeStatRanker([...wkArr], "offense", "pg", true),
       makeStatRanker([...wkArr], "pf", "total", true),
 
       makeStatRanker([...wkArr], "losses", "total"),
       makeStatRanker([...wkArr], "defense", "total"),
       makeStatRanker([...wkArr], "pa", "total"),
+
+      makeStatRanker([...wkArr], "wins", "pg", true),
+      makeStatRanker([...wkArr], "offense", "pg", true),
+      makeStatRanker([...wkArr], "pf", "pg", true),
+
+      makeStatRanker([...wkArr], "losses", "pg"),
+      makeStatRanker([...wkArr], "defense", "pg"),
+      makeStatRanker([...wkArr], "pa", "pg"),
     ];
 
     rankingConfig.forEach((rc) => rankStat(rc));
@@ -279,7 +286,7 @@ function calcExternalStat(sznMap: SeasonMap, weights: RankerWeights) {
 function calcPollInertia(currTm: RankedTeam, prevTm: RankedTeam) {
   currTm.externalStats.pollIntertia.total.rank = prevTm.rank;
   currTm.externalStats.pollIntertia.total.val = prevTm.rank;
-  //Probably doesnt matter
+  //TODO Probably doesnt matter
   currTm.externalStats.pollIntertia.pg.val =
     prevTm.rank / (currTm.schedule.length || 1);
 }
@@ -323,17 +330,19 @@ function compileTeamWeights(sznMap: SeasonMap, weights: RankerWeights) {
 function rankStat(params: RankerParams) {
   let rankedIndex = 1;
   let currVal = 0;
-  params.sortedTms.forEach((t, i) => {
-    const val = params.accessor(t);
-    if (i === 0) {
+
+  params.sortedTms.forEach((team, index) => {
+    const val = params.accessor(team);
+
+    if (index === 0) {
       currVal = val;
     }
 
     if (val !== currVal) {
-      rankedIndex = i + 1;
+      rankedIndex = index + 1;
       currVal = val;
     }
-    params.assigner(t, rankedIndex);
+    params.assigner(team, rankedIndex);
   });
 }
 
@@ -342,17 +351,17 @@ function sumWeights(tm: RankedTeam, weights: RankerWeights) {
   let wt = 0;
   //wins
   wt += tm.stats.wins.total.rank * weights.stats.wins.totalWeight;
-  wt += tm.stats.wins.pg.rank * weights.stats.wins.pgWeight;
-  
+  // wt += tm.stats.wins.pg.rank * weights.stats.wins.pgWeight;
+
   //losses
   wt += tm.stats.losses.total.rank * weights.stats.losses.totalWeight;
   // wt += tm.Stats.losses.pgVal * weights.pg.losses;
-  
+
   //offense
   wt += tm.stats.offense.total.rank * weights.stats.offense.totalWeight;
   // wt += tm.Stats.totalOffense.pgVal * weights.pg.offense;
-  wt += tm.stats.offense.pg.rank * weights.stats.offense.pgWeight;
-  
+  // wt += tm.stats.offense.pg.rank * weights.stats.offense.pgWeight;
+
   //defense
   wt += tm.stats.defense.total.rank * weights.stats.defense.totalWeight;
   // wt += tm.Stats.totalDefense.pgVal * weights.pg.defense;

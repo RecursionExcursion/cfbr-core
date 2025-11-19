@@ -31,6 +31,7 @@ const mockTeams: RankerTeam[] = [{ id: 1 }, { id: 2 }, { id: 3 }];
 
 const mockGames: RankerGame[] = [
   // Week 1
+  //Tm1 beats team 2
   createGame(
     11,
     1,
@@ -47,6 +48,7 @@ const mockGames: RankerGame[] = [
     1
   ),
 
+  //tm 3 beaks and fcs school
   createGame(
     12,
     1,
@@ -64,6 +66,7 @@ const mockGames: RankerGame[] = [
   ),
 
   // Week 2
+  //tm 3 beats tm1
   createGame(
     13,
     2,
@@ -80,6 +83,7 @@ const mockGames: RankerGame[] = [
     1
   ),
 
+  //tm 2 beats and fcs school
   createGame(
     14,
     2,
@@ -97,6 +101,7 @@ const mockGames: RankerGame[] = [
   ),
 
   //postseason
+  //tm3 beats tm 1 in postseason
   createGame(
     15,
     1,
@@ -176,7 +181,7 @@ describe("Test rank", () => {
     }
   });
 
-  it("Stats are squashed", () => {
+  it("Stat Squashing", () => {
     const assertStat = (
       wk: number,
       teamId: number,
@@ -219,12 +224,33 @@ describe("Test rank", () => {
     assertStat(2, 3, "pf", 30, 10);
   });
 
-  // it("Ranking Logic", () => {
-  //   //tm3 Wk1, 1-0
-  //   assert.strictEqual(res.sznMap.get(0)?.get(3)?.Stats.wins.rank, 1);
-  //   assert.strictEqual(res.sznMap.get(0)?.get(3)?.Stats.losses.rank, 1);
-  //   //tm1 Wk1, 1-0
-  //   assert.strictEqual(res.sznMap.get(0)?.get(1)?.Stats.wins.rank, 1);
-  //   assert.strictEqual(res.sznMap.get(0)?.get(1)?.Stats.losses.rank, 1);
-  // });
+  it("Ranking Logic", () => {
+    const week1 = res.sznMap.get(2);
+    const tm3 = week1?.get(3)!;
+    const tm2 = week1?.get(2)!;
+    const tm1 = week1?.get(1)!;
+
+    // assert.strictEqual(tm3?.rank, 1);
+    // assert.strictEqual(tm1?.rank, 2);
+    // assert.strictEqual(tm2?.rank, 3);
+
+    function rtToStat(rt: RankedTeam) {
+      console.log({
+        [rt.id]: {
+          wt: rt.weight,
+          wins: {
+            totVal: rt.stats.wins.total.val,
+            totRank: rt.stats.wins.total.rank,
+            pgVal: rt.stats.wins.pg.val,
+            pgRank: rt.stats.wins.pg.rank,
+          },
+        },
+      });
+    }
+    rtToStat(tm1);
+    rtToStat(tm2);
+    rtToStat(tm3);
+  });
+
+  // console.log(res.sznMap);
 });
