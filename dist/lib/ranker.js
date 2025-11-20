@@ -1,4 +1,5 @@
-export function rank(teams, games, weights) {
+export function rank(params) {
+    const { teams, games, weights } = params;
     const res = compileSeason(teams, games);
     sqaushStats(res.sznMap);
     /* at this point all the season stats are accumulated */
@@ -272,28 +273,26 @@ function rankStat(params) {
         params.assigner(team, rankedIndex);
     });
 }
-//TODO inject weights here in this fn
 function sumWeights(tm, weights) {
     let wt = 0;
     //wins
     wt += tm.stats.wins.total.rank * weights.stats.wins.totalWeight;
-    // wt += tm.stats.wins.pg.rank * weights.stats.wins.pgWeight;
+    wt += tm.stats.wins.pg.rank * weights.stats.wins.pgWeight;
     //losses
     wt += tm.stats.losses.total.rank * weights.stats.losses.totalWeight;
-    // wt += tm.Stats.losses.pgVal * weights.pg.losses;
+    wt += tm.stats.losses.pg.rank * weights.stats.losses.pgWeight;
     //offense
     wt += tm.stats.offense.total.rank * weights.stats.offense.totalWeight;
-    // wt += tm.Stats.totalOffense.pgVal * weights.pg.offense;
-    // wt += tm.stats.offense.pg.rank * weights.stats.offense.pgWeight;
+    wt += tm.stats.offense.pg.rank * weights.stats.offense.pgWeight;
     //defense
     wt += tm.stats.defense.total.rank * weights.stats.defense.totalWeight;
-    // wt += tm.Stats.totalDefense.pgVal * weights.pg.defense;
+    wt += tm.stats.defense.pg.rank * weights.stats.defense.pgWeight;
     //pf
     wt += tm.stats.pf.total.rank * weights.stats.pf.totalWeight;
-    // wt += tm.Stats.pf.pgVal * weights.pg.pf;
+    wt += tm.stats.pf.pg.rank * weights.stats.pf.pgWeight;
     //pa
     wt += tm.stats.pa.total.rank * weights.stats.pa.totalWeight;
-    // wt += tm.Stats.pa.pgVal * weights.pg.pa;
+    wt += tm.stats.pa.pg.rank * weights.stats.pa.pgWeight;
     //pi
     wt += tm.externalStats.pollIntertia.total.rank * weights.extra.pi;
     //ss

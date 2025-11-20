@@ -153,7 +153,7 @@ const wts: RankerWeights = {
 };
 
 describe("Test rank", () => {
-  const res = rank(mockTeams, mockGames, wts);
+  const res = rank({ teams: mockTeams, games: mockGames, weights: wts });
   it("Teams are captured", () => {
     const teamKeys = Array.from(res.teamMap.keys());
     const required = [1, 2, 3];
