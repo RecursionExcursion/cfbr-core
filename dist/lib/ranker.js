@@ -125,8 +125,8 @@ function createRankableTeam(rt) {
             pa: createStat(),
         },
         externalStats: {
-            pollIntertia: createStat(),
-            scheduleStrength: createStat(),
+            pi: createStat(),
+            ss: createStat(),
         },
     };
 }
@@ -212,18 +212,18 @@ function calcExternalStat(sznMap, weights) {
         // const valAccessor: keyof RankedStat = "pgVal";
         //Currently rated pg
         rankStat({
-            sortedTms: Array.from(wkMap.values()).sort((a, b) => a.externalStats.scheduleStrength.pg.val -
-                b.externalStats.scheduleStrength.pg.val),
-            accessor: (tm) => tm.externalStats.scheduleStrength.pg.val,
-            assigner: (tm, rank) => (tm.externalStats.scheduleStrength.pg.rank = rank),
+            sortedTms: Array.from(wkMap.values()).sort((a, b) => a.externalStats.ss.pg.val -
+                b.externalStats.ss.pg.val),
+            accessor: (tm) => tm.externalStats.ss.pg.val,
+            assigner: (tm, rank) => (tm.externalStats.ss.pg.rank = rank),
         });
     });
 }
 function calcPollInertia(currTm, prevTm) {
-    currTm.externalStats.pollIntertia.total.rank = prevTm.rank;
-    currTm.externalStats.pollIntertia.total.val = prevTm.rank;
+    currTm.externalStats.pi.total.rank = prevTm.rank;
+    currTm.externalStats.pi.total.val = prevTm.rank;
     //TODO Probably doesnt matter
-    currTm.externalStats.pollIntertia.pg.val =
+    currTm.externalStats.pi.pg.val =
         prevTm.rank / (currTm.schedule.length || 1);
 }
 function calcStrengthOfSchedule(currTm, prevWeek) {
@@ -237,8 +237,8 @@ function calcStrengthOfSchedule(currTm, prevWeek) {
             totalOppWt += prevWeek.size + 1;
         }
     });
-    currTm.externalStats.scheduleStrength.total.val = totalOppWt;
-    currTm.externalStats.scheduleStrength.pg.val =
+    currTm.externalStats.ss.total.val = totalOppWt;
+    currTm.externalStats.ss.pg.val =
         totalOppWt / (currTm.schedule.length || 1);
 }
 function assignFinalRanks(sznMap, weights) {
@@ -294,9 +294,9 @@ function sumWeights(tm, weights) {
     wt += tm.stats.pa.total.rank * weights.stats.pa.totalWeight;
     wt += tm.stats.pa.pg.rank * weights.stats.pa.pgWeight;
     //pi
-    wt += tm.externalStats.pollIntertia.total.rank * weights.extra.pi;
+    wt += tm.externalStats.pi.total.rank * weights.extra.pi;
     //ss
-    wt += tm.externalStats.scheduleStrength.pg.val * weights.extra.ss;
+    wt += tm.externalStats.ss.pg.val * weights.extra.ss;
     // Object.entries(tm.Stats).forEach((stat) => (wt += stat[1].Rank));
     tm.weight = wt;
 }

@@ -69,8 +69,8 @@ export type RankedTeam = {
     pa: Stat;
   };
   externalStats: {
-    pollIntertia: Stat;
-    scheduleStrength: Stat;
+    pi: Stat;
+    ss: Stat;
   };
 };
 export type RankedStat = {
