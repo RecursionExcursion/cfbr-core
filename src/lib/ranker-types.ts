@@ -8,8 +8,8 @@ export type RankerWeights = {
     pa: StatWeight;
   };
   extra: {
-    pi: number;
-    ss: number;
+    pi: StatWeight;
+    ss: StatWeight;
   };
 };
 

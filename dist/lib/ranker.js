@@ -212,8 +212,7 @@ function calcExternalStat(sznMap, weights) {
         // const valAccessor: keyof RankedStat = "pgVal";
         //Currently rated pg
         rankStat({
-            sortedTms: Array.from(wkMap.values()).sort((a, b) => a.externalStats.ss.pg.val -
-                b.externalStats.ss.pg.val),
+            sortedTms: Array.from(wkMap.values()).sort((a, b) => a.externalStats.ss.pg.val - b.externalStats.ss.pg.val),
             accessor: (tm) => tm.externalStats.ss.pg.val,
             assigner: (tm, rank) => (tm.externalStats.ss.pg.rank = rank),
         });
@@ -222,9 +221,7 @@ function calcExternalStat(sznMap, weights) {
 function calcPollInertia(currTm, prevTm) {
     currTm.externalStats.pi.total.rank = prevTm.rank;
     currTm.externalStats.pi.total.val = prevTm.rank;
-    //TODO Probably doesnt matter
-    currTm.externalStats.pi.pg.val =
-        prevTm.rank / (currTm.schedule.length || 1);
+    currTm.externalStats.pi.pg.val = prevTm.rank / (currTm.schedule.length || 1);
 }
 function calcStrengthOfSchedule(currTm, prevWeek) {
     let totalOppWt = 0;
@@ -238,8 +235,7 @@ function calcStrengthOfSchedule(currTm, prevWeek) {
         }
     });
     currTm.externalStats.ss.total.val = totalOppWt;
-    currTm.externalStats.ss.pg.val =
-        totalOppWt / (currTm.schedule.length || 1);
+    currTm.externalStats.ss.pg.val = totalOppWt / (currTm.schedule.length || 1);
 }
 function assignFinalRanks(sznMap, weights) {
     compileTeamWeights(sznMap, weights);
@@ -275,28 +271,16 @@ function rankStat(params) {
 }
 function sumWeights(tm, weights) {
     let wt = 0;
-    //wins
-    wt += tm.stats.wins.total.rank * weights.stats.wins.totalWeight;
-    wt += tm.stats.wins.pg.rank * weights.stats.wins.pgWeight;
-    //losses
-    wt += tm.stats.losses.total.rank * weights.stats.losses.totalWeight;
-    wt += tm.stats.losses.pg.rank * weights.stats.losses.pgWeight;
-    //offense
-    wt += tm.stats.offense.total.rank * weights.stats.offense.totalWeight;
-    wt += tm.stats.offense.pg.rank * weights.stats.offense.pgWeight;
-    //defense
-    wt += tm.stats.defense.total.rank * weights.stats.defense.totalWeight;
-    wt += tm.stats.defense.pg.rank * weights.stats.defense.pgWeight;
-    //pf
-    wt += tm.stats.pf.total.rank * weights.stats.pf.totalWeight;
-    wt += tm.stats.pf.pg.rank * weights.stats.pf.pgWeight;
-    //pa
-    wt += tm.stats.pa.total.rank * weights.stats.pa.totalWeight;
-    wt += tm.stats.pa.pg.rank * weights.stats.pa.pgWeight;
-    //pi
-    wt += tm.externalStats.pi.total.rank * weights.extra.pi;
-    //ss
-    wt += tm.externalStats.ss.pg.val * weights.extra.ss;
-    // Object.entries(tm.Stats).forEach((stat) => (wt += stat[1].Rank));
+    function calcWeight(s1, s2) {
+        return s1.total.rank * s2.totalWeight + s1.pg.rank * s2.pgWeight;
+    }
+    wt += calcWeight(tm.stats.wins, weights.stats.wins);
+    wt += calcWeight(tm.stats.losses, weights.stats.losses);
+    wt += calcWeight(tm.stats.offense, weights.stats.offense);
+    wt += calcWeight(tm.stats.defense, weights.stats.defense);
+    wt += calcWeight(tm.stats.pf, weights.stats.pf);
+    wt += calcWeight(tm.stats.pa, weights.stats.pa);
+    wt += calcWeight(tm.externalStats.pi, weights.extra.pi);
+    wt += calcWeight(tm.externalStats.ss, weights.extra.ss);
     tm.weight = wt;
 }

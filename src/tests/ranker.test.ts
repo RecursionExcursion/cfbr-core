@@ -147,8 +147,14 @@ const wts: RankerWeights = {
     },
   },
   extra: {
-    pi: 1,
-    ss: 1,
+    pi: {
+      pgWeight: 1,
+      totalWeight: 1,
+    },
+    ss: {
+      pgWeight: 1,
+      totalWeight: 1,
+    },
   },
 };
 
